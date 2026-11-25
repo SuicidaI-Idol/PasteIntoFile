@@ -203,9 +203,40 @@ Copyright © PasteIntoFile GitHub contributors
 
 ## Code signing policy
 
-Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/)
-- Committers and reviewers: [Contributors](https://github.com/eltos/PasteIntoFile/graphs/contributors)
-- Approvers: [Owner](https://github.com/eltos)
+Releases published by this fork are unsigned. The upstream project's SignPath
+configuration and signing credentials are not used by this fork.
+
+## Building and releasing this fork
+
+This fork addresses two setup issues:
+
+- The settings wizard could show a horizontal scrollbar and clip options with
+  French translations and Windows display scaling. Content now wraps to the
+  available width, clipboard patching options are stacked vertically, and the
+  window scrolls vertically when needed.
+- Enabling tray autostart during installation previously required waiting until
+  the next Windows sign-in or starting tray mode manually. Finishing the wizard
+  now starts tray mode immediately when autostart is enabled. The existing tray
+  mutex prevents duplicate instances. Leaving autostart disabled does not start
+  a background process.
+
+Install Visual Studio 2022 Build Tools with the .NET desktop build tools workload.
+Open this repository folder in VS Code and use:
+
+- **F5** to build and debug the portable x64 application.
+- **Ctrl+Shift+B** to rebuild Debug, Release, the portable ZIP, and the MSI installer.
+- `./Build.ps1 -Configuration Release` to build the portable application only.
+- `./Rebuild-All.ps1` to generate all outputs in `dist/`. WiX 3.14.1 is downloaded
+  from its official release into a per-user build tools cache when needed.
+- `Run.cmd` to launch the portable Release build.
+
+Stop any active debug session before rebuilding. Build tool output is in English.
+
+To publish a release, update the Release `AssemblyVersion` in
+`PasteIntoFile/Properties/AssemblyInfo.cs`, push the changes, and publish a GitHub
+release with the matching tag (for example, `v5.6.3`). The Release workflow builds
+and uploads `PasteIntoFile_<tag>_installer_unsigned.msi` and
+`PasteIntoFile_<tag>_portable_unsigned.zip`. No signing secrets are required.
 
 ## Privacy Policy
 

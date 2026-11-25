@@ -38,6 +38,15 @@ namespace PasteIntoFile {
             /// </summary>
             /// <param name="m"></param>
             protected override void WndProc(ref Message m) {
+                // Allow Windows Installer to close a tray-only process cleanly.
+                if (m.Msg == 0x0011) { // WM_QUERYENDSESSION
+                    m.Result = new IntPtr(1);
+                    return;
+                }
+                if (m.Msg == 0x0010 || (m.Msg == 0x0016 && m.WParam != IntPtr.Zero)) { // WM_CLOSE / WM_ENDSESSION
+                    Application.Exit();
+                    return;
+                }
                 base.WndProc(ref m);
 
                 // check if we got a hot key pressed.

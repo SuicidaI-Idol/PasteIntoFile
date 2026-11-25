@@ -662,3 +662,6 @@ fabric.properties
 
 # End of https://www.toptal.com/developers/gitignore/api/rider,visualstudio,csharp,dotnetcore
 
+# Local distribution artifacts
+/dist/
+

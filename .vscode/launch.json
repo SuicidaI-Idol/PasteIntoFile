@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "PasteIntoFile (Debug)",
+            "type": "clr",
+            "request": "launch",
+            "preLaunchTask": "Build Debug",
+            "program": "${workspaceFolder}/PasteIntoFile/bin/Debug/PasteIntoFile.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/PasteIntoFile/bin/Debug",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "justMyCode": true
+        }
+    ]
+}

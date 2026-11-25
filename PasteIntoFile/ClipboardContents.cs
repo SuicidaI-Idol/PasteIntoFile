@@ -632,7 +632,7 @@ namespace PasteIntoFile {
                         + "\n</body>\n</html>\n",
                         description
                     );
-                } catch (SerializationException e) {
+                } catch (SerializationException) {
                     // ignored (default to text preview below)
                 }
             }

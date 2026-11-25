@@ -1,0 +1,75 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Debug",
+      "type": "process",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/Build.ps1",
+        "-Configuration",
+        "Debug"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": {
+        "base": "$msCompile",
+        "owner": "msCompile",
+        "source": "MSBuild",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^\\s*(.+)\\((\\d+),(\\d+)\\):\\s+(warning|error)\\s+([^:]+):\\s+(.*?)(?:\\s+\\[.*\\])?$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "code": 5,
+          "message": 6
+        }
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "Rebuild All (Debug, Release, ZIP and MSI)",
+      "type": "process",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/Rebuild-All.ps1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": {
+        "base": "$msCompile",
+        "owner": "msCompile",
+        "source": "MSBuild",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^\\s*(.+)\\((\\d+),(\\d+)\\):\\s+(warning|error)\\s+([^:]+):\\s+(.*?)(?:\\s+\\[.*\\])?$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "code": 5,
+          "message": 6
+        }
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}

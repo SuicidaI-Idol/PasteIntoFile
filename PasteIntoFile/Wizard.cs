@@ -12,14 +12,18 @@ using Color = System.Drawing.Color;
 
 namespace PasteIntoFile {
     public sealed partial class Wizard : MasterForm {
+        private readonly bool continueInTray;
+        public bool StartTrayAfterClose { get; private set; }
 
-        public Wizard() {
+        public Wizard(bool continueInTray = false) {
+            this.continueInTray = continueInTray;
             ReloadUi();
         }
 
         private void ReloadUi() {
             Controls.Clear();
             InitializeComponent();
+            ConfigureScrolling();
             Settings.Default.Reload(); // load modifications made from other instance
 
 
@@ -49,7 +53,7 @@ namespace PasteIntoFile {
             versionstr += " (debug build)";
 #endif
             version.Text = string.Format(Resources.str_version, versionstr);
-            version.Links.Add(0, version.Text.Length, "https://github.com/eltos/PasteIntoFile/releases");
+            version.Links.Add(0, version.Text.Length, Program.ReleasesUrl);
             version.LinkClicked += (sender, args) => Process.Start(args.Link.LinkData.ToString());
             var backgroundTask = CheckForUpdates();
 
@@ -76,7 +80,6 @@ namespace PasteIntoFile {
                     Thread.CurrentThread.CurrentUICulture = string.IsNullOrEmpty(Settings.Default.language) ? Program.SystemCulture
                         : CultureInfo.CreateSpecificCulture(Settings.Default.language);
                     ReloadUi();
-                    Height += 100;
                 });
 
                 item.Checked = Settings.Default.language == code;
@@ -219,14 +222,55 @@ namespace PasteIntoFile {
         private void finish_Click(object sender, EventArgs e) {
             Settings.Default.firstLaunch = false;
             Settings.Default.Save();
+            if (autostartCheckBox.Checked) {
+                if (continueInTray) {
+                    StartTrayAfterClose = true;
+                    Close();
+                    return;
+                }
+                // Apply tray startup immediately instead of waiting for the next sign-in.
+                // Tray mode already uses a mutex to prevent duplicate instances.
+                Process.Start(new ProcessStartInfo(Application.ExecutablePath, "tray") {
+                    UseShellExecute = true,
+                    WorkingDirectory = Path.GetDirectoryName(Application.ExecutablePath)
+                });
+            }
             Close();
         }
 
         private void Wizard_Shown(object sender, EventArgs e) {
-            // Auto size dialog height
-            // All tableLayout rows are set to 'autosize' except for the last -> it's height is a measure for leftover space
-            Height -= tableLayoutPanel1.GetRowHeights()[tableLayoutPanel1.RowCount - 1];
-            MinimumSize = Size;
+            // Keep the window within the screen; the content scrolls vertically.
+            var workingArea = Screen.FromControl(this).WorkingArea;
+            MinimumSize = new Size(Math.Min(Width, workingArea.Width), Math.Min(400, workingArea.Height));
+            Height = Math.Min(Height, workingArea.Height);
+        }
+
+        private void ConfigureScrolling() {
+            var scrollPanel = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
+            Controls.Remove(tableLayoutPanel1);
+            Controls.Add(scrollPanel);
+            scrollPanel.Controls.Add(tableLayoutPanel1);
+            tableLayoutPanel1.Dock = DockStyle.None;
+            tableLayoutPanel1.AutoScroll = false;
+            tableLayoutPanel1.AutoSize = true;
+            tableLayoutPanel1.RowStyles[tableLayoutPanel1.RowCount - 1].SizeType = SizeType.AutoSize;
+
+            // Do not let long translated text determine the scrollable width.
+            Action resizeContent = () => {
+                int width = Math.Max(1, scrollPanel.ClientSize.Width - SystemInformation.VerticalScrollBarWidth);
+                tableLayoutPanel1.MaximumSize = new Size(width, 0);
+                tableLayoutPanel1.MinimumSize = new Size(width, 0);
+                tableLayoutPanel1.Width = width;
+                foreach (Control control in GetAllChild(tableLayoutPanel1)) {
+                    if (control is Label || control is CheckBox) {
+                        int padding = tableLayoutPanel1.Padding.Horizontal + control.Margin.Horizontal;
+                        control.MaximumSize = new Size(Math.Max(1, width - padding), 0);
+                    }
+                }
+            };
+            scrollPanel.SizeChanged += (sender, args) => resizeContent();
+            resizeContent();
+            settingsButton.BringToFront();
         }
     }
 }

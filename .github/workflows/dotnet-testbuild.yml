@@ -1,4 +1,4 @@
-﻿# For all pushes and pull_request, this workflow creates a debug build
+# For all pushes and pull_request, this workflow creates a debug build
 
 name: Test Build
 
@@ -37,8 +37,8 @@ jobs:
           cd Installer
           heat dir ../${{steps.build.outputs.path}} -dr INSTALLFOLDER -ag -cg ReleaseFragment -ke -srd -sfrag -nologo -pog:Binaries -pog:Documents -pog: Satellites -pog:Sources -pog:Content -t releaseFiles.xslt -out releaseFiles.wxs
           candle releaseFiles.wxs
-          candle PasteIntoFile.wxs
-          light -b ../${{steps.build.outputs.path}} releaseFiles.wixobj PasteIntoFile.wixobj -ext WixNetFxExtension -out Installer.msi
+          candle PasteIntoFile.wxs -ext WixUtilExtension
+          light -b ../${{steps.build.outputs.path}} releaseFiles.wixobj PasteIntoFile.wixobj -ext WixNetFxExtension -ext WixUtilExtension -out Installer.msi
 
 
 #  test:

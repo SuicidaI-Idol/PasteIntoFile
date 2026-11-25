@@ -20,6 +20,9 @@ using Bluegrams.Application;
 
 namespace PasteIntoFile {
     static class Program {
+        public const string GitHubRepository = "SuicidaI-Idol/PasteIntoFile";
+        public const string ReleasesUrl = "https://github.com/" + GitHubRepository + "/releases";
+        private const string LatestReleaseApiUrl = "https://api.github.com/repos/" + GitHubRepository + "/releases/latest";
         public const string PATCHED_CLIPBOARD_MAGIC = "PasteIntoFileHasPatchedTheClipboard";
         private static int saveCount = 0;
 
@@ -249,10 +252,13 @@ namespace PasteIntoFile {
             // Re-regiter context menu entries to overwrites default text with localized strings
             RegistryUtil.ReRegisterContextMenuEntries();
 
-            var wizard = new Wizard();
+            var wizard = new Wizard(continueInTray: args != null);
             // Make sure to bring window to foreground (installer will open window in background)
             wizard.BringToFrontForced();
             Application.Run(wizard);
+            if (wizard.StartTrayAfterClose) {
+                return RunTray();
+            }
             return 0;
         }
 
@@ -511,6 +517,14 @@ namespace PasteIntoFile {
         /// </summary>
         /// <returns>If an update is available</returns>
         public static async Task<bool> CheckForUpdates() {
+            // Discard cached upstream releases when switching to this fork.
+            if (!string.IsNullOrEmpty(Settings.Default.updateLatestVersionLink)
+                && !Settings.Default.updateLatestVersionLink.StartsWith(ReleasesUrl + "/tag/", StringComparison.OrdinalIgnoreCase)) {
+                Settings.Default.updateLatestVersion = "";
+                Settings.Default.updateLatestVersionLink = "";
+                Settings.Default.updateLatestVersionLastCheck = DateTime.MinValue;
+                Settings.Default.Save();
+            }
             if (!Settings.Default.updateChecksEnabled) return false;
             bool newReleaseFound = false;
             if ((DateTime.Now - Settings.Default.updateLatestVersionLastCheck).TotalDays > 30) {
@@ -520,8 +534,8 @@ namespace PasteIntoFile {
                 try {
                     var client = new HttpClient();
                     client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("PasteIntoFile", Application.ProductVersion));
-                    var data = await client.GetStringAsync(new Uri("https://api.github.com/repos/eltos/PasteIntoFile/releases/latest"));
-                    var match = Regex.Match(data, "\"(https://github.com/eltos/PasteIntoFile/releases/tag/v(\\d+(\\.\\d+)*))\"");
+                    var data = await client.GetStringAsync(new Uri(LatestReleaseApiUrl));
+                    var match = Regex.Match(data, "\"(" + Regex.Escape(ReleasesUrl) + "/tag/v(\\d+(\\.\\d+)*))\"");
                     if (match.Success && match.Groups[2].Value != Settings.Default.updateLatestVersion) {
                         newReleaseFound = true;
                         Settings.Default.updateLatestVersion = match.Groups[2].Value;

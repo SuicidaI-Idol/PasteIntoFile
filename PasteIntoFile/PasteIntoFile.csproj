@@ -12,6 +12,10 @@
         <StartupObject>PasteIntoFile.Program</StartupObject>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <ApplicationIcon>Resources/icon.ico</ApplicationIcon>
+        <!-- stdole2.tlb exposes DISPPARAMS pointer signatures that the COM importer
+             cannot marshal. These members are not used by this application.
+             Keep the importer diagnostics as messages instead of build warnings. -->
+        <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3305</MSBuildWarningsAsMessages>
     </PropertyGroup>
     <!-- Build variants -->
     <PropertyGroup>

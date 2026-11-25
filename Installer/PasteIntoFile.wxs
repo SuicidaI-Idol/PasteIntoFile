@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <Product Language="1033" Id="*" UpgradeCode="D3BEE3F0-4EC0-44CC-ADDC-E7A3E133B9D2" Name="Paste Into File" Manufacturer="PasteIntoFile" Version="!(bind.FileVersion.mainExecutable)">
         <Package InstallerVersion="100" Compressed="yes" />
         <MediaTemplate EmbedCab="yes" />
@@ -18,9 +18,11 @@
             <ComponentRef Id="AutostartTray" />
         </Feature>
         <!-- Upgrade: uninstall previous version before installing new one -->
-        <MajorUpgrade AllowDowngrades="no" DowngradeErrorMessage="A more recent version is already installed." AllowSameVersionUpgrades="no" />
+        <MajorUpgrade AllowDowngrades="no" DowngradeErrorMessage="A more recent version is already installed." AllowSameVersionUpgrades="yes" />
+        <!-- Close old tray instances before replacement or removal, including hidden windows. -->
+        <util:CloseApplication Id="ClosePasteIntoFile" Target="PasteIntoFile.exe" CloseMessage="yes" ElevatedCloseMessage="yes" Timeout="3" RebootPrompt="no" TerminateProcess="0" />
         <!-- After install: launch wizard -->
-        <CustomAction Id="LaunchProgram" FileKey="mainExecutable" ExeCommand="wizard" Impersonate="yes" />
+        <CustomAction Id="LaunchProgram" FileKey="mainExecutable" ExeCommand="wizard" Impersonate="yes" Return="asyncNoWait" />
         <InstallExecuteSequence>
             <!-- This action is not executed during uninstall and silent mode -->
             <Custom Action="LaunchProgram" After="InstallFinalize">(NOT Installed) AND (NOT UILevel=2)</Custom>
